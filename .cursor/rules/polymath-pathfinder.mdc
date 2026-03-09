@@ -1,0 +1,38 @@
+---
+description: Polymath user approach for Pathfinder—intersection careers, M-shape, Idea Trap
+globs: "**/careers*.ts,**/questionnaire*.ts,**/intake/**/*.ts,**/InterestSpace*.ts,**/CareerDetailPanel*.tsx"
+alwaysApply: false
+---
+
+# Polymath User Approach for Pathfinder
+
+## Core Principle
+
+Polymaths are optimized for "wicked" environments where rules change. Treat curiosity as an asset, not noise. Never punish exploration; redirect it.
+
+## Career Output Rules
+
+- **Output intersection roles** (pillar + spark), not generic jobs
+- Each career option must include: why fit, proof task (1–2h), 2-week experiment
+- Use `polymathMeta` on CareerNode for intersection careers
+- Match keywords across multiple domains (e.g. "art + science" → Science Communicator)
+
+## Anti-Failure Rules
+
+- Never let users run 3 pillars concurrently; enforce serial mastery (one at a time)
+- Always output next action as a small proof task, not vague "explore more"
+- Reframe "too many interests" as M-shape, not confusion
+
+## Output Templates
+
+**Intersection Career Option:** Title, Intersection (Pillar + Spark), Why it fits (2 bullets), Proof task (1–2h), 2-week experiment
+
+**M-Shape Card:** Stability Pillar, Growth Pillar, Curiosity Playground, Current Active Pillar, Next 4-week milestone
+
+**Idea Trap Note:** Title, What I learned (5 bullets), Tags, Possible future connections
+
+## Matching Logic
+
+- Detect polymath signals: "many interests", "intersection", "cross-domain", "innovation", "futures"
+- Prioritize careers with polymathMeta when user expresses polymath pattern
+- Require 2+ domain match for cross-path results; single-domain = too narrow
