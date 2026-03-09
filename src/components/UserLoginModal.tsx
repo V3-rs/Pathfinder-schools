@@ -79,6 +79,51 @@ export default function UserLoginModal({ onContinue }: Props) {
         }
     }
 
+    async function handleSkip() {
+        setSaving(true);
+        try {
+            const res = await fetch("/api/students/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ skip: true }),
+            });
+            const data = await res.json();
+
+            if (res.ok && data.student) {
+                localStorage.setItem(
+                    "pathfinder_user",
+                    JSON.stringify({
+                        id: data.student.id,
+                        firstName: data.student.firstName,
+                        lastName: data.student.lastName,
+                        email: data.student.email,
+                        city: data.student.city,
+                        age: data.student.age,
+                    })
+                );
+            }
+
+            // Track usage
+            fetch("/api/track", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    event: "platform_use",
+                    name: "Anonymous User",
+                    email: null,
+                    timestamp: new Date().toISOString(),
+                }),
+            }).catch(() => { });
+
+            setDone(true);
+            setTimeout(() => onContinue(), 1200);
+        } catch {
+            // Even if tracking fails, just skip
+            setDone(true);
+            setTimeout(() => onContinue(), 1200);
+        }
+    }
+
     return (
         <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative z-10">
             <AnimatePresence mode="wait">
@@ -216,21 +261,36 @@ export default function UserLoginModal({ onContinue }: Props) {
                             )}
 
                             {/* Submit */}
-                            <button
-                                onClick={handleRegister}
-                                disabled={saving}
-                                className="btn-primary w-full flex items-center justify-center gap-2"
-                            >
-                                {saving ? (
-                                    <>
-                                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                        </svg>
-                                        Creating account...
-                                    </>
-                                ) : "Create Account →"}
-                            </button>
+                            <div className="space-y-3 pt-2">
+                                <button
+                                    onClick={handleRegister}
+                                    disabled={saving}
+                                    className="btn-primary w-full flex items-center justify-center gap-2"
+                                >
+                                    {saving ? (
+                                        <>
+                                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                            </svg>
+                                            Creating account...
+                                        </>
+                                    ) : "Create Account →"}
+                                </button>
+
+                                <button
+                                    onClick={handleSkip}
+                                    disabled={saving}
+                                    className="w-full flex items-center justify-center gap-2 text-sm py-2.5 px-4 rounded-xl transition-all hover:bg-white/5"
+                                    style={{
+                                        color: "var(--text-secondary)",
+                                        border: "1px solid var(--glass-border)",
+                                        background: "transparent"
+                                    }}
+                                >
+                                    Skip & Continue Anonymously
+                                </button>
+                            </div>
                         </div>
 
                         <p className="text-center text-xs mt-6" style={{ color: "var(--text-muted)", opacity: 0.5 }}>

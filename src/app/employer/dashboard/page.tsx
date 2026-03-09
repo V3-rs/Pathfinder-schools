@@ -23,6 +23,7 @@ interface UsageStats {
 export default function EmployerDashboardPage() {
     const [insights, setInsights] = useState<Insights | null>(null);
     const [usage, setUsage] = useState<UsageStats | null>(null);
+    const [students, setStudents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
@@ -51,10 +52,12 @@ export default function EmployerDashboardPage() {
         Promise.all([
             fetch("/api/employer/insights").then((r) => r.json()),
             fetch("/api/track").then((r) => r.json()).catch(() => ({ total_users: 0, logged_in_users: 0, login_rate: 0 })),
+            fetch("/api/students/register").then((r) => r.json()).catch(() => ({ students: [] })),
         ])
-            .then(([insightsData, usageData]) => {
+            .then(([insightsData, usageData, studentsData]) => {
                 setInsights(insightsData);
                 setUsage(usageData);
+                setStudents(studentsData?.students || []);
             })
             .catch((err) => {
                 setError(err?.message || "Failed to load insights");
@@ -316,6 +319,52 @@ export default function EmployerDashboardPage() {
                                 ) : (
                                     <p className="text-sm" style={{ color: "var(--text-muted)" }}>No keyword data yet. Students need to submit the questionnaire.</p>
                                 )}
+                            </motion.div>
+
+                            {/* Student Roster */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5 }}
+                                className="glass-card p-6 lg:col-span-2"
+                            >
+                                <h2 className="text-lg font-semibold mb-5 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                                    <span>🧑‍🎓</span> Registered Students & Visitors
+                                </h2>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-sm">
+                                        <thead>
+                                            <tr style={{ color: "var(--text-muted)", borderBottom: "1px solid var(--glass-border)" }}>
+                                                <th className="pb-3 font-medium">Name</th>
+                                                <th className="pb-3 font-medium">Email</th>
+                                                <th className="pb-3 font-medium">City</th>
+                                                <th className="pb-3 font-medium">Age</th>
+                                                <th className="pb-3 font-medium">Joined</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {students.length > 0 ? (
+                                                students.map((s, i) => (
+                                                    <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                                                        <td className="py-3" style={{ color: s.isAnonymous ? "var(--text-muted)" : "var(--text-primary)" }}>
+                                                            {s.firstName} {s.lastName} {s.isAnonymous && <span className="text-xs ml-2 px-2 py-0.5 rounded-full bg-white/10 opacity-70">Skipped</span>}
+                                                        </td>
+                                                        <td className="py-3" style={{ color: "var(--text-secondary)" }}>{s.email.startsWith("anonymous_") ? "—" : s.email}</td>
+                                                        <td className="py-3" style={{ color: "var(--text-secondary)" }}>{s.city}</td>
+                                                        <td className="py-3" style={{ color: "var(--text-secondary)" }}>{s.age === 0 ? "—" : s.age}</td>
+                                                        <td className="py-3" style={{ color: "var(--text-secondary)" }}>{new Date(s.registeredAt).toLocaleDateString()}</td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan={5} className="py-6 text-center" style={{ color: "var(--text-muted)" }}>
+                                                        No users recorded yet.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </motion.div>
                         </div>
                     </>

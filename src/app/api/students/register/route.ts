@@ -12,6 +12,7 @@ interface Student {
     city: string;
     age: number;
     registeredAt: string;
+    isAnonymous?: boolean;
 }
 
 async function readStudents(): Promise<Student[]> {
@@ -31,7 +32,25 @@ async function writeStudents(students: Student[]) {
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { firstName, lastName, email, city, age } = body;
+        const { firstName, lastName, email, city, age, skip } = body;
+
+        const students = await readStudents();
+
+        if (skip) {
+            const anonStudent: Student = {
+                id: `anon_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                firstName: "Anonymous",
+                lastName: "User",
+                email: `anonymous_${Date.now()}@example.com`,
+                city: "Unknown",
+                age: 0,
+                registeredAt: new Date().toISOString(),
+                isAnonymous: true,
+            };
+            students.push(anonStudent);
+            await writeStudents(students);
+            return NextResponse.json({ success: true, student: anonStudent });
+        }
 
         // Validation
         if (!firstName?.trim() || !lastName?.trim() || !email?.trim() || !city?.trim() || !age) {
@@ -48,8 +67,6 @@ export async function POST(req: NextRequest) {
                 { status: 400 }
             );
         }
-
-        const students = await readStudents();
 
         // Check for duplicate email
         if (students.some((s) => s.email.toLowerCase() === email.trim().toLowerCase())) {
@@ -73,7 +90,8 @@ export async function POST(req: NextRequest) {
         await writeStudents(students);
 
         return NextResponse.json({ success: true, student: newStudent });
-    } catch {
+    } catch (error) {
+        console.error("Registration error:", error);
         return NextResponse.json(
             { success: false, error: "Registration failed. Please try again." },
             { status: 500 }
